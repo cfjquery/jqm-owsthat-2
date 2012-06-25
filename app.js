@@ -43,8 +43,9 @@ $(function(){
 			app.getCommentaryData();
 			//APPLY BINDINGS
 			app.bindings();
-			//INITIALLY HIDE THE BUTTON UNTIL TWO TEAMS ARE SELECTED
+			//INITIALLY HIDE THE START BUTTON UNTIL TWO TEAMS ARE SELECTED
 			$btnStart.hide();
+			//INITIALLY HIDE THE PLAY AGAIN BUTTON
 			$("#playAgain").hide();
 		}
 		//GET THE TEAM DATA FROM THE XML FILE
