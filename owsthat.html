@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Owsthat</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- CDN  -->
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
+	<script src="http://code.jquery.com/jquery-1.6.4.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
+	<!-- LOCAL -->
+	<link rel="stylesheet" href="themes/owsthat.css" />
+	<script src="app.js"></script>
+</head>
+<body>
+	<div data-role="page" id="selectTeams">
+		<div data-role="header">
+			<h1>Owsthat</h1>
+		</div>
+		<div data-role="content" align="center">
+			<fieldset data-role="controlgroup" data-type="horizontal">
+					<select name="selectTeam1" id="selectTeam1" data-inline="true" data-theme="a">
+						<option value="-1">Select a team</option>
+					</select>
+					<select name="selectTeam2" id="selectTeam2" data-inline="true" data-theme="a">
+						<option value="-1">Select a team</option>
+					</select>
+			</fieldset>
+ 			<a href="#playGame" id="btnStart" data-role="button" data-theme="a" data-inline="true" >Start</a>
+			<a href="instructions.html" data-role="button" data-theme="a" data-inline="true" data-role="dialog" data-transition="slide">Instructions</a>
+			<br/>
+			<br/>
+			<br/>
+			<div style="text-align:center;">
+				<a href="http://twitter.com/cfjquery"><img src="themes/images/rounded/twitter_32.png"></a>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<a href="http://cfjquery.com/blog/"><img src="themes/images/rounded/blog_32.png"></a>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<a href="https://github.com/cfjquery"><img src="themes/images/rounded/github_32.png"></a>
+			</div>
+		</div>
+		<div data-role="footer" class="footer-docs">
+			<h5>&copy; cfJquery</h5>
+		</div>
+	</div>
+	<div data-role="page" id="playGame">
+		<div data-role="header">
+			<table align="center">
+				<tr>
+					<td><img id="headerFlagName_1" src="" /></td>
+					<td><span id="headerTeamScore_1" class="headerScore"></span></td>
+					<td><span id="headerTeamPlayerNo_1" class="headerScore"></span></td>
+					<td>&nbsp;&nbsp;<a id="btnBat" data-role="button" href="#">Bat</a>&nbsp;&nbsp;</td>
+					<td><span id="headerTeamScore_2" class="headerScore"></span></td>
+					<td><span id="headerTeamPlayerNo_2" class="headerScore"></span></td>
+					<td><img id="headerFlagName_2" src="" /></td>
+				</tr>	
+			</table>
+		</div>
+		<div id="playAgain" align="center"><a id="btnPlayAgain" data-role="button" data-theme="a" data-inline="true" href="#">Play Again</a></div>
+		<div data-role="content">
+			<ul id="txtCommentary" data-role="listview" data-dividertheme="a">
+			</ul>
+		</div>
+		<div data-role="footer" class="footer-docs">
+			<h5>&copy; cfJquery</h5>
+		</div>
+	</div>
+</body>
+</html>

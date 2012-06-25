@@ -1,0 +1,18 @@
+.headerTable {
+	text-align:center;
+}
+.headerImage {
+	vertical-align: bottom;
+}
+/*#headerDiv{
+    display: table; 
+    vertical-align: middle;
+    text-align: center;
+}
+
+#headerFlagName_1,#headerTeamScore_1,#headerTeamPlayerNo_1,#headerButton,#headerFlagName_2,#headerTeamScore_2,#headerTeamPlayerNo_2{
+    display: table-cell; 
+    vertical-align: middle;
+    text-align: center;
+}
+*/

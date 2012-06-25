@@ -1,0 +1,660 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"IsD",
+				"isDefined	Function (cfscript)"
+			],
+			[
+				"t",
+				"type"
+			],
+			[
+				"in",
+				"input	Tag"
+			],
+			[
+				"ac",
+				"activeTeam"
+			],
+			[
+				"batt",
+				"battingTeam"
+			],
+			[
+				"over",
+				"overScores"
+			],
+			[
+				"ov",
+				"overScores"
+			],
+			[
+				"TO",
+				"toString"
+			],
+			[
+				"n",
+				"noOfOvers"
+			],
+			[
+				"st",
+				"strong	Tag"
+			],
+			[
+				"bo",
+				"bowlingTeam"
+			],
+			[
+				"app",
+				"append"
+			],
+			[
+				"lo",
+				"log"
+			],
+			[
+				"F",
+				"Function"
+			],
+			[
+				"Proc",
+				"Procedure"
+			],
+			[
+				"Pro",
+				"Procedure"
+			],
+			[
+				"tab",
+				"table"
+			],
+			[
+				"icon-",
+				"icon-white"
+			],
+			[
+				"table",
+				"tableToShow"
+			],
+			[
+				"cfo",
+				"CFOUTPUT	Cfml"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"contents": "$(function(){\n\n	//DEFINE THE APPLICATION\n	var Owsthat = {};\n\n	(function(app){\n		// DEFINE VARIABLES\n		var $selectTeam1 = $(\"#selectTeam1\");\n		var $selectTeam2 = $(\"#selectTeam2\");\n		var $btnStart = $(\"#btnStart\");\n        var battingDiceText = ['1','2','3','4','Owsthat','6'];\n        var umpireDiceText = ['Bowled','Stumped','Caught','Not Out','No Ball','LBW'];\n        var flagsDirectory = 'themes/images/flags/48/';\n        var umpireDice = 0;\n        var activeTeam = 1;\n        var bowlingTeam = 0;\n        var battingTeam = 0;\n        var activeTeamName = '';\n        var activeTeamShortName = '';\n        var activeTeamScore = 0;\n        var activeTeamExtras = 0;\n        var activePlayer = 0;\n        var activePlayerScore = 0;\n        var activeBowler = 10;\n        var bowlNumber = 7;\n        var noOfOvers = 0;\n        var overScores = '&nbsp;&nbsp;&nbsp;';\n		var aryTeamName = new Array();\n		var aryTeamShortName = new Array();\n		var aryTeamFlag = new Array();\n		var aryPlayer = new Array();\n		var aryCommentaryText = new Array();\n		var aryQty = new Array();\n		var extraCommentaryText = '';\n		var gameOver = 0;\n		var gameInit = 1;\n		var sel = '';\n		//INITIALISE THE APP\n		app.init = function(){\n			//GET THE TEAM DATA FROM THE XML FILE\n			app.getTeamData();\n			//GET THE COMMENTARY DATA FROM THE XML FILE\n			app.getCommentaryData();\n			//APPLY BINDINGS\n			app.bindings();\n			//INITIALLY HIDE THE BUTTON UNTIL TWO TEAMS ARE SELECTED\n			$btnStart.hide();\n			$(\"#playAgain\").hide();\n		}\n		//GET THE TEAM DATA FROM THE XML FILE\n		app.getTeamData = function(){\n			$.ajax({\n				type: \"GET\",\n				url: \"owsthat.xml\",\n				dataType: \"xml\",\n				success: function(xml) {\n					$(xml).find(\"team\").each(function(){\n						var teamid = $(this).attr(\"teamid\");\n						var teamname = $(this).attr(\"teamname\");\n						var teamshortname = $(this).attr(\"teamshortname\");\n						var teamflag = $(this).attr(\"teamflag\");\n						sel += '<option value=\"' + teamid + '\">' + teamname + '</option>';\n						aryTeamName[teamid] = teamname;\n						aryTeamShortName[teamid] = teamshortname;\n						aryTeamFlag[teamid] =  teamflag;\n						aryPlayer[teamid] = new Array();\n						$(this).find('player').each(function(){\n							var playerID = $(this).attr(\"id\");\n							var playerInitials = $(this).find(\"initials\").text();\n							var playerName = $(this).find(\"name\").text();\n							aryPlayer[teamid][playerID] = playerInitials + ' ' + playerName;						\n						});\n					});\n					$selectTeam1.append(sel);\n					$selectTeam2.append(sel);\n					$selectTeam1.selectmenu();\n					$selectTeam2.selectmenu();\n				}\n			});\n		}\n		//GET THE COMMENTARY DATA FROM THE XML FILE\n		app.getCommentaryData = function(){\n			$.ajax({\n				type: \"GET\",\n				url: \"commentary.xml\",\n				dataType: \"xml\",\n				success: function(xml) {\n					$(xml).find(\"type\").each(function(){\n						var typeid = $(this).attr(\"typeid\");\n						var typename = $(this).attr(\"typename\");\n						var qty = $(this).attr(\"qty\");\n						aryQty[typeid] = qty; \n						aryCommentaryText[typeid] = new Array();\n						$(this).find(\"commentaryText\").each(function(){\n							var textID = $(this).attr(\"id\");\n							var txtValue = $(this).find(\"txtValue\").text();\n							aryCommentaryText[typeid][textID] = txtValue;						\n						});\n					});\n				}\n			});\n		}\n		function bat(){\n      	    bowlNumber++;\n	        //ROLL THE DICE\n	        var battingDice = rollDice();\n	        //INCREMENT THE BOWLING FIGURE\n	        bowlingStats();\n	        if(battingDice == 5){\n	    	    //OWSTHAT\n	            umpireDice = rollDice();\n	            \n	            //NOT OUT\n	            if(umpireDice == 4 || umpireDice == 5){\n	            	//NO BALL\n	                if(umpireDice == 5){\n	                	activeTeamExtras++;\n	                	//ADD RUNS TO PLAYERS SCORE\n	                	activePlayerScore++;\n	                	//ADD RUNS TO TEAM SCORE\n	                	activeTeamScore++;\n	                	//ADD NO BALL TO OVERS SCORES\n	                	overScores += ' 1 <sup>nb</sup>';\n	                }\n	                else{\n	                	//ADD DOT BALL TO OVERS SCORES\n	                	overScores += ' .';\n	                }\n		            //GET EXTRA COMMENTARY\n		            extraCommentaryText = getExtraCommentary('notout',umpireDice); \n	                //DISPLAY SCORES\n	                displayScores(); \n	            }\n	            else{\n		            //GET EXTRA COMMENTARY\n		            extraCommentaryText = getExtraCommentary('out',umpireDice); \n                	//ADD WICKET BALL TO OVERS SCORES\n                	overScores += ' w';\n	                //DISPLAY SCORES\n	                displayScores(); \n	            	//GET NEXT ACTIVE PLAYER\n	                activePlayer++;\n	                //LAST PLAYER HAS BATTED\n	                if(activePlayer == 2){\n	                	if(activeTeam == 1){\n				        	$(\"#headerTeamScore_1\").html(activeTeamScore);\n				        	$(\"#headerTeamPlayerNo_1\").html('All Out');\n 	                    	activeTeam++;\n	                    	activeTeamScore = 0;\n	                    	activeTeamExtras = 0;\n	                    	activePlayer = 0;\n	                    	activePlayerScore = 0;\n	        	        	bowlNumber = 6;\n				        	noOfOvers = 0;\n							bowlingTeam = $selectTeam1.val();\n							battingTeam = $selectTeam2.val();\n	   		       			displayScores(); \n	                  	}\n	                  	else{\n				        	$(\"#headerTeamScore_2\").html(activeTeamScore);\n				        	$(\"#headerTeamPlayerNo_2\").html('All Out');\n	                  		$(\"#btnBat\").hide();\n	                  		displayWinner();\n	                  		gameOver = 1;\n	                	}\n	                }\n	                //RESET ACTIVE PLAYER SCORE\n	                activePlayerScore = 0;\n	            }\n	        }\n	        else{\n	            //ADD RUNS TO PLAYERS SCORE\n	            activePlayerScore = activePlayerScore + battingDice;\n	            //ADD RUNS TO TEAM SCORE\n	            activeTeamScore = activeTeamScore + battingDice;\n	            //GET EXTRA COMMENTARY\n	            extraCommentaryText = getExtraCommentary('scored',battingDice); \n               	//ADD RUNS TO OVERS SCORES\n               	overScores += ' ' + battingDice.toString();\n	            //DISPLAY SCORES\n	            displayScores(); \n	        }\n		}\n		//DISPLAY SCORES\n		function displayScores(){\n			displayHeaderScores();\n			displayCommentary();\n		}\n		//DISPLAY HEADER SCORES\n		function displayHeaderScores(){\n			$(\"#headerTeamScore_\" + activeTeam).html(activeTeamScore + ' for '); \n			$(\"#headerTeamPlayerNo_\" + activeTeam).html(activePlayer);\n			$(\"#oversPlayed_\" + activeTeam).html(noOfOvers + '.' + bowlNumber);\n		}\n		//ROLL DICE\n		function rollDice(){\n			dice = (Math.floor(Math.random()*5)+1);\n			return dice;\n		}\n		//GET RANDOM NUNBER\n		function getRandomNumber(max){\n			max = max - 1;\n			number = (Math.floor(Math.random()*max)+1);\n			return number;\n		}\n		//BOWLING STATS\n		function bowlingStats(){\n	        if(bowlNumber == 7){\n	        	if(gameInit == 1){\n		        	bowlNumber = 0;\n		        	gameInit = 0;\n	        	}\n	        	else{\n		        	bowlNumber = 1;\n					overScores = '&nbsp;&nbsp;&nbsp;';\n	        	}\n	        	noOfOvers++;\n	        	chooseBowler();\n	        }\n		}\n		//CHOOSE BOWLER\n		function chooseBowler(){\n	        //ROLL THE DICE\n	        var bowlerDice = rollDice();\n			switch(bowlerDice){\n				case 1: case 2:\n					activeBowler = 8;\n					break;\n				case 3: case 4:\n					activeBowler = 9;\n					break;\n				case 5: case 6:\n					activeBowler = 10;\n					break;\n			}\n			displayBowlingText();\n		}\n		function addSuffix(num){\n			var suffix = '';\n			if(num < 20){\n				switch(num){\n					case 1: suffix = 'st';\n					break;\n					case 2: suffix = 'nd';\n					break;\n					case 3: suffix = 'rd';\n					break;\n					default: suffix = 'th';\n				}\n			}\n			else{\n				strNum = (num).toString().substr(-1);\n				switch(strNum){\n					case '1': suffix = 'st';\n					break;\n					case '2': suffix = 'nd';\n					break;\n					case '3': suffix = 'rd';\n					break;\n					default: suffix = 'th';\n				}\n			}\n			return (num).toString() + suffix;\n		}\n		//DISPLAY TEAM SCORE\n		function displayTeamScore(){\n			$(\"#headerFlagName_1\").attr(\"src\",flagsDirectory + aryTeamFlag[$selectTeam1.val()] + '.png');\n			$(\"#headerTeamName_1\").html(aryTeamShortName[$selectTeam1.val()]);\n			$(\"#headerTeamScore_1\").html(activeTeamScore);\n			$(\"#headerTeamPlayerNo_1\").html(' for ' + activePlayer);\n			$(\"#headerFlagName_2\").attr(\"src\",flagsDirectory + aryTeamFlag[$selectTeam2.val()] + '.png');\n			$(\"#headerTeamName_2\").html(aryTeamShortName[$selectTeam2.val()]);\n			$(\"#headerTeamScore_2\").html('0');\n			$(\"#headerTeamPlayerNo_2\").html(' for 0');\n		}\n 		//DISPLAY COMMENTARY\n		function displayCommentary(){\n			var commentaryText = ''; \n			commentaryText += '<li>'; \n			commentaryText += '<table>'; \n			commentaryText += '<tr>'; \n			commentaryText += '<td>' + noOfOvers + '.' + bowlNumber + '</td>'; \n			commentaryText += '<td>' + aryPlayer[bowlingTeam][activeBowler] + ' to ' + aryPlayer[battingTeam][activePlayer] + '</td>'; \n			commentaryText += '</tr>'; \n			commentaryText += '<tr>'; \n			commentaryText += '<td></td>'; \n			commentaryText += '<td>' + extraCommentaryText + '</td>'; \n			commentaryText += '</tr>'; \n			commentaryText += '</table>';\n			commentaryText += '</li>'; \n			$(\"#over_\" + activeTeam + '_' + noOfOvers).prepend(commentaryText);\n			$(\"#overScores_\" + activeTeam + '_' + noOfOvers).html(overScores);\n		}\n		//DISPLAY BOWLING TEXT\n		function displayBowlingText(){\n			var commentaryText = '<br/>'; \n			var strOvers = addSuffix(noOfOvers);\n			commentaryText += '<li data-role=\"list-divider\" role=\"heading\" class=\"ui-li ui-li-divider ui-bar-a\">';\n			commentaryText += '<strong>'; \n			commentaryText += strOvers + ' Over. '; \n			commentaryText += '<span id=\"overScores_' + activeTeam + '_' + noOfOvers + '\"></span>'; \n			commentaryText += '</strong>'; \n			commentaryText += '</li>'; \n			commentaryText += '<div id=\"over_' + activeTeam + '_' + noOfOvers + '\">'; \n			commentaryText += '</div>'; \n			$(\"#txtCommentary\").prepend(commentaryText);\n		}\n		//DISPLAY WINNER\n		function displayWinner(){\n      		var txtWinner = '';\n      		var diff = '';\n      		var txtWinningTeam = '';\n      		var t1Score = parseInt($(\"#headerTeamScore_1\").text());\n      		var t2Score = parseInt($(\"#headerTeamScore_2\").text());\n  			diff = (Math.abs(t1Score - t2Score)).toString();\n      		if(t1Score > t2Score){\n      			txtWinningTeam = aryTeamName[$selectTeam1.val()];\n      		}\n      		else\n      		{\n      			txtWinningTeam = aryTeamName[$selectTeam2.val()];\n      		}\n  			txtWinner += '<table align=\"center\"><tr><td><strong>' + txtWinningTeam + ' won by ' + diff + ' Runs' + '</strong></td></tr></table>';\n			txtWinner += $(\"#txtCommentary\").html();\n			$(\"#txtCommentary\").html(txtWinner);\n			$(\"#playAgain\").show();\n		}\n		//GET EXTRA COMMENTARY\n		function getExtraCommentary(playType,diceValue){\n			var extraText = '';\n			var randomNo = 0;\n			switch(playType){\n				case 'notout':\n					randomNo = getRandomNumber(aryQty[0]);\n					if(diceValue == 4){\n						//NO RUN\n						extraText = '<strong>NO RUN. </strong>' + aryCommentaryText[0][randomNo];\n					}\n					if(diceValue == 5){\n						//NO RUN\n						extraText = '<strong>NO BALL. </strong>' + aryCommentaryText[0][randomNo];\n					}\n					break;\n				case 'out':\n					randomNo = getRandomNumber(aryQty[4]);\n					extraText = '<strong>OUT. </strong>' + aryCommentaryText[4][randomNo];\n					break;\n				case 'scored':\n					switch(diceValue){\n						case 1:\n							randomNo = getRandomNumber(aryQty[1]);\n							extraText = '<strong>1 RUN. </strong>' + aryCommentaryText[1][randomNo];\n							break;\n\n						case 2:\n							randomNo = getRandomNumber(aryQty[1]);\n							extraText = '<strong>2 RUNS. </strong>' + aryCommentaryText[1][randomNo];\n							break;\n						case 3:\n							randomNo = getRandomNumber(aryQty[1]);\n							extraText = '<strong>3 RUNS. </strong>' + aryCommentaryText[1][randomNo];\n							break;\n						case 4:\n							randomNo = getRandomNumber(aryQty[2]);\n							extraText = '<strong>FOUR. </strong>' + aryCommentaryText[2][randomNo];\n							break;\n						case 6:\n							randomNo = getRandomNumber(aryQty[3]);\n							extraText = '<strong>SIX. </strong>' + aryCommentaryText[3][randomNo];\n							break;\n					}\n					break;\n			}\n			return extraText;\n		}\n		app.reset = function(){\n			umpireDice = 0;\n			activeTeam = 1;\n			bowlingTeam = 0;\n			battingTeam = 0;\n			activeTeamName = '';\n			activeTeamShortName = '';\n			activeTeamScore = 0;\n			activeTeamExtras = 0;\n			activePlayer = 0;\n			activePlayerScore = 0;\n			activeBowler = 10;\n			bowlNumber = 7;\n			noOfOvers = 0;\n			overScores = '&nbsp;&nbsp;&nbsp;';\n			extraCommentaryText = '';\n			gameOver = 0;\n			gameInit = 1;\n			$(\"#txtCommentary\").html('');\n			$(\"#selectTeam1\").val(-1);\n			$(\"#selectTeam2\").val(-1);\n			$(\"#selectTeam1\").selectmenu('refresh');\n			$(\"#selectTeam2\").selectmenu('refresh');\n			$btnStart.hide();\n			$(\"#playAgain\").hide();\n       		$(\"#btnBat\").show();\n	        $.mobile.changePage(\"owsthat.html\");\n		}\n		//APPLY BINDINGS\n		app.bindings = function(){\n			$(\"body\").bind(\"swipeleft\", function(e){\n				if(gameOver == 0){\n					bat();\n				}\n			});\n			//PROCESS THE TEAM SELECTION\n			$(\"#selectTeam1,#selectTeam2\").change(function(event){\n				if($selectTeam1.val() != -1 && $selectTeam2.val() != -1){\n					//SHOW THE START BUTTON\n					$btnStart.show();\n					displayTeamScore();\n				}\n			});\n			//PROCESS START BUTTON\n			$(\"#btnStart\").click(function(event){\n				bowlingTeam = $selectTeam2.val();\n				battingTeam = $selectTeam1.val();\n				bowlingStats();\n			});\n			//BATTING BUTTON\n		    $(\"#btnBat\").click(function(event){\n		        bat();\n		    });\n			//PLAY AGAIN BUTTON\n		    $(\"#btnPlayAgain\").click(function(event){\n		        gameOver = 0;\n		        app.reset();\n		    });\n		}\n		//LAUNCH APPLICATION\n		app.init();\n	})(Owsthat);\n});",
+			"file": "app.js",
+			"file_size": 13820,
+			"file_write_time": 129851278906880356,
+			"settings":
+			{
+				"buffer_size": 13834,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/C/Users/Dave/AppData/Roaming/Sublime Text 2/Packages/User/snippets.sublime-snippet",
+			"settings":
+			{
+				"buffer_size": 278,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "lou.cfm",
+			"settings":
+			{
+				"buffer_size": 1715,
+				"line_ending": "Windows",
+				"name": "//"
+			}
+		},
+		{
+			"file": "owsthat.html",
+			"settings":
+			{
+				"buffer_size": 2754,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "themes/owsthat.css",
+			"settings":
+			{
+				"buffer_size": 385,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "z_owsthat.html",
+			"settings":
+			{
+				"buffer_size": 2790,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "commentary.xml",
+			"settings":
+			{
+				"buffer_size": 16609,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "instructions.html",
+			"settings":
+			{
+				"buffer_size": 1342,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 311.0,
+		"selected_items":
+		[
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 512.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/chess/chessJS.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/jqm-owsthat-2/x_owsthat.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/jqm-owsthat-2/x_app.js",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/jqm-owsthat-2/instructions.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/jqm-owsthat-2/z_owsthat.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/jqm-owsthat-2/z_app.js",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/jqm-owsthat-2/jqm-owsthat-bs.sublime-workspace",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/jqm-owsthat-bs/themes/Notekeeper.css",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/jqm-owsthat-bs/README",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/a/app.js",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/a/owsthat.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/a/owsthat.xml",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/a/commentary.xml",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/a/x_app.js",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/a/z_app.js",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/z_index.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/a/x.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/playGame.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/application.js",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/x.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/m.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/sfs_ajax_cfc_mobile_2/index.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/m/mobileIndex.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/index.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/a/styles.css",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/multangular/index.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/multangular/index.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/a/blog.sublime-workspace",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/blog/components/plugins/user/sociallinks/plugin.xml",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/blog/components/plugins/user/sociallinks/Handler.cfc",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/blog/components/plugins/user/sociallinks/BasePlugin.cfc",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/blog/components/plugins/user/sociallinks/admin/settingsForm.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/blog/components/plugins/user/sociallinks/settings.xml",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/notekeeper.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/application.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/xx.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/cfc/owsthat.cfc",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/a/c9/test_page.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/a.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/epsys/code/legacy/rcp/cfc/recipe.cfc",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/epsys/code/legacy/rcp/rcpRecipe.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/epsys/code/legacy/rcp/rcpRecipeData.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/Chess2/chessJS.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/rcp/rcpRecipeJS.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/bootstrap/css/default.css",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/CRIC1.HTM",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/index.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/bootstrap/css/bootstrap.css",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/owzthat/bootstrap/js/bootstrap-alerts.js",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/demo/chess/chess.cfc",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/Application.cfc",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/doco.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/SiteINCLUDESubSystemSearchClubs.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/Application.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/SitePROCESSStyleSheet.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/SitePROCESSSiteConfig.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/index.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/SiteINCLUDESubSystemTopBarAdvert.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/SiteINCLUDEMenu.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/reset.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/SiteINCLUDESubSystemDisplayClubDetails.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/SiteINCLUDESubSystemDisplayClub.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/SiteINCLUDEContent.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/Site.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/edgeweb/www/SiteINCLUDEMenuSchemeRenderer.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/mobileTicketList.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/mobileShowTicket.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/mobileNewTicket.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/mobileLogin.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/content.cfc",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/m.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/mShowTicket.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/mobileFooter.cfm",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/test.html",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/helpdesk.cfc",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/cfcs/helpdesk.cfc",
+		"/C/Program Files (x86)/Apache Software Foundation/Apache2.2/htdocs/mh/css/default.css"
+	],
+	"find":
+	{
+		"height": 34.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+			"C:\\Program Files (x86)\\Apache Software Foundation\\Apache2.2\\htdocs\\edgeweb\\www",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"console",
+			"con",
+			"btnPlayAgain",
+			"playAgain",
+			"headerTeamScore_1",
+			"headerTeamPlayerNo_1",
+			"headerTeamFlag_1",
+			"overScores",
+			"blankRow",
+			"srcFile",
+			"playType",
+			"aryPlayer",
+			"umpValue",
+			"batValue",
+			"</commentaryText>",
+			"\">",
+			"aryTeam",
+			"		}",
+			"teamName",
+			"<player id=\"x\">",
+			"<player id=\"11\">",
+			"<player id=\"10\">",
+			"<player id=\"9\">",
+			"<player id=\"8\">",
+			"<player id=\"7\">",
+			"<player id=\"6\">",
+			"<player id=\"5\">",
+			"<player id=\"4\">",
+			"<player id=\"3\">",
+			"<player id=\"2\">",
+			"<player id=\"1\">",
+			"btnNo",
+			"@typ",
+			"show",
+			"INSERT tblOutput (Line) SELECT",
+			"'",
+			"tbProcedures",
+			"#Procedures",
+			"#Indexes",
+			"#Constraint",
+			"#Fk",
+			"#Columns",
+			"#Tables",
+			"#Output",
+			"GetSiteInfo",
+			"qryContent"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"btnPlayAgain",
+			"</txtValue></commentaryText>",
+			"\"><txtValue>",
+			"aryTeamName",
+			"aryPlayer",
+			"teamname",
+			"<player id=\"0\">",
+			"<player id=\"1\">",
+			"<player id=\"10\">",
+			"<player id=\"9\">",
+			"<player id=\"8\">",
+			"<player id=\"7\">",
+			"<player id=\"6\">",
+			"<player id=\"5\">",
+			"<player id=\"4\">",
+			"<player id=\"3\">",
+			"<player id=\"2\">",
+			"<player id=\"1\">",
+			"<player id=\"x\">",
+			"",
+			"tblProcedures",
+			"tbProcedures",
+			"tblIndexes",
+			"tblConstraint",
+			"tblFk",
+			"tblColumns",
+			"tblTables",
+			"tblOutput"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "app.js",
+					"settings":
+					{
+						"buffer_size": 13834,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3539,
+								3539
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1765.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/C/Users/Dave/AppData/Roaming/Sublime Text 2/Packages/User/snippets.sublime-snippet",
+					"settings":
+					{
+						"buffer_size": 278,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								258,
+								258
+							]
+						],
+						"settings":
+						{
+							"default_extension": "sublime-snippet",
+							"is_xml": false,
+							"syntax": "Packages/XML/XML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "lou.cfm",
+					"settings":
+					{
+						"buffer_size": 1715,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								253,
+								253
+							]
+						],
+						"settings":
+						{
+							"auto_name": "//",
+							"is_xml": false,
+							"syntax": "Packages/ColdFusion/Coldfusion.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "owsthat.html",
+					"settings":
+					{
+						"buffer_size": 2754,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								463,
+								493
+							]
+						],
+						"settings":
+						{
+							"is_xml": false,
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "themes/owsthat.css",
+					"settings":
+					{
+						"buffer_size": 385,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								385,
+								385
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "z_owsthat.html",
+					"settings":
+					{
+						"buffer_size": 2790,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1668,
+								1685
+							]
+						],
+						"settings":
+						{
+							"is_xml": false,
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 270.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "commentary.xml",
+					"settings":
+					{
+						"buffer_size": 16609,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								10243,
+								10243
+							]
+						],
+						"settings":
+						{
+							"is_xml": true,
+							"syntax": "Packages/XML/XML.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1686.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "instructions.html",
+					"settings":
+					{
+						"buffer_size": 1342,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								633,
+								633
+							]
+						],
+						"settings":
+						{
+							"is_xml": false,
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 34.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"replace":
+	{
+		"height": 62.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 131.0,
+	"status_bar_visible": true
+}
